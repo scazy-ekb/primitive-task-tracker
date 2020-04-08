@@ -1,0 +1,96 @@
+<?php
+
+namespace App\Core;
+
+use Exception;
+use ReflectionClass;
+
+class Container
+{
+    private $services;
+
+    public function __construct()
+    {
+        $this->services = array();
+    }
+
+    public function register($name, $instance = null) : void
+    {
+        if (empty($name))
+            throw new Exception('$name');
+
+        $name = strtolower($name);
+
+        if (array_key_exists($name, $this->services))
+            throw new Exception('$instance');
+
+        $this->services[$name] = $instance;
+    }
+
+    public function resolveFromArray($name, $array)
+    {
+        $reflectionClass = new ReflectionClass($name);
+
+        if (!$reflectionClass->isInstantiable())
+            throw new Exception("isn't instantiable");
+
+        $constructor = $reflectionClass->getConstructor();
+
+        $num = $constructor->getNumberOfParameters();
+
+        if ($num == 0)
+            throw new Exception("constructor doesn't have parameters");
+
+        return $reflectionClass->newInstanceArgs($array);
+    }
+
+    public function resolve($name)
+    {
+        $name = strtolower($name);
+
+        if (!array_key_exists($name, $this->services))
+            throw new Exception("name: $name");
+
+        if ($this->services[$name] == null)
+            $this->services[$name] = $this->build($name);
+
+        return $this->services[$name];
+    }
+
+    private function build($name)
+    {
+        $reflectionClass = new ReflectionClass($name);
+
+        if (!$reflectionClass->isInstantiable())
+            throw new Exception("isn't instantiable");
+
+        $constructor = $reflectionClass->getConstructor();
+
+        if (is_null($constructor))
+            return new $name;
+
+        $parameters = $constructor->getParameters();
+
+        if (empty($parameters))
+            return new $name;
+
+        $dependencies = $this->resolveDependencies($parameters);
+        return $reflectionClass->newInstanceArgs($dependencies);
+    }
+
+    public function resolveDependencies($parameters)
+    {
+        $dependencies = [];
+
+        foreach ($parameters as $parameter) {
+            $dependency = $parameter->getClass();
+
+            if (is_null($dependency))
+                throw new Exception('not a class');
+
+            $dependencies[] = $this->resolve($dependency->name);
+        }
+
+        return $dependencies;
+    }
+}
