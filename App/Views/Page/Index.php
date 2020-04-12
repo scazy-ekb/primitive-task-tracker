@@ -5,11 +5,13 @@
 <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.20/datatables.min.js"></script>
 <script>
     $(document).ready( function () {
+        /*
         $('#table_id').DataTable({
             "processing": true,
             "serverSide": true,
             "ajax": "/tasks/index"
         });
+        */
     } );
 </script>
 <div class="container">

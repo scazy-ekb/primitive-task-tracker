@@ -4,12 +4,12 @@ namespace App\Models;
 
 class Task
 {
-    public $id;
-    public $userId;
-    public $description;
-    public $completed;
+    public int $id;
+    public int $userId;
+    public string $description;
+    public bool $completed;
 
-    public static function fromArray($array) : Task
+    public static function fromArray(array $array) : Task
     {
         $task = new Task();
         $task->id = $array['id'];

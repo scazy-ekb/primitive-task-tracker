@@ -4,31 +4,69 @@ namespace App\Services;
 
 require_once 'App/Models/User.php';
 
-use App\Core\SqlConnection;
 use App\Models\User;
 
 class UserDataService
 {
-    private $connection;
+    private DataService $dataService;
+    private string $secret;
 
-    public function __construct(SqlConnection $connection)
+    public function __construct(ConfigService $configService, DataService $dataService)
     {
-        $this->connection = $connection;
+        $this->secret = $configService->Get('secret');
+        $this->dataService = $dataService;
     }
 
-    public function getUser($login) : User
+    public function getUserByName(string $login) : ?User
     {
-        //$login = $this->connection->escape($login);
-
+        $connection = $this->dataService->getConnection();
+        $login = $connection->escape($login);
         $query = "SELECT * FROM `users` WHERE `login`='$login'";
+        $sqlResult = $connection->query($query);
 
-        $sqlResult = $this->connection->execute($query);
-
-        if (!$sqlResult)
+        if (!$sqlResult || $sqlResult->RowsCount() == 0)
             return null;
 
         $arr = $sqlResult->fetchArray();
-
+        $sqlResult->free_result();
         return User::fromArray($arr);
+    }
+
+    public function getUser(int $id) : ?User
+    {
+        $connection = $this->dataService->getConnection();
+
+        $query = "SELECT * FROM `users` WHERE `id`='$id'";
+        $sqlResult = $connection->query($query);
+
+        if (!$sqlResult || $sqlResult->RowsCount() == 0)
+            return null;
+
+        $arr = $sqlResult->fetchArray();
+        $sqlResult->free_result();
+        return User::fromArray($arr);
+    }
+
+    public function createUser($name, $email, $password) : bool
+    {
+        $connection = $this->dataService->getConnection();
+        $passwrd_hash = md5($this->secret.$password);
+        $query = "INSERT INTO `users` (`login`, `email`, `password`) VALUES ('$name', '$email', '$passwrd_hash')";
+        return $connection->execute($query);
+    }
+
+    public function checkPassword(int $id, string $password) : bool
+    {
+        $connection = $this->dataService->getConnection();
+        $query = "SELECT `password` FROM `users` WHERE `id`='$id'";
+        $sqlResult = $connection->query($query);
+
+        if (!$sqlResult || $sqlResult->RowsCount() != 1)
+            return false;
+
+        $arr = $sqlResult->fetchArray();
+        $sqlResult->free_result();
+
+        return $arr['password'] == md5($this->secret.$password);
     }
 }

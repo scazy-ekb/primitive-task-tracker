@@ -6,14 +6,21 @@ include_once 'App/Core/SqlResult.php';
 
 class SqlConnection
 {
-	private $connection;
+	private ?\mysqli $connection;
 
-	function connect($host, $user, $pass, $dbname)
+	public function __construct()
+    {
+        $this->connection = null;
+    }
+
+    function connect(string $host, string $user, string $pass, string $dbname)
 	{
-        if (!$this->connection = mysqli_connect($host, $user, $pass, $dbname)) {
+        if (!$connection = @mysqli_connect($host, $user, $pass, $dbname)) {
             $this->writeError();
             throw new \Exception('DB connection error!');
 		}
+
+        $this->connection = $connection ? $connection : null;
 
 	    mysqli_query($this->connection, "SET NAMES utf8;");
    	    mysqli_query($this->connection, "SET CHARACTER SET utf8;");
@@ -26,34 +33,54 @@ class SqlConnection
 		mysqli_query($this->connection, "SET character_set_server='utf8'");
 	}
 
-	function execute($query)
+	function isConnected()
+    {
+        return $this->connection!= null && $this->connection->ping();
+    }
+
+	function query($query) : SqlResult
 	{
 	    if (empty($this->connection))
             throw new \Exception('DB connection lost!');
-/*
-		if (!@mysqli_select_db($this->dbname, $this->connection)) {
-            $this->WriteError($query);
-            return false;
-        }
-*/
 
-        $result = @mysqli_query($this->connection, $query);
+        $sqlResult = @mysqli_query($this->connection, $query);
 
-		if (!$result) {
+		if ($sqlResult === false) {
 			$this->writeError($query);
 			return false;
 		}
 
-		return new SqlResult($result);
+		return new SqlResult($sqlResult);
 	}
 
-	public function Disconnect()
+    function execute($query) : bool
+    {
+        if (empty($this->connection))
+            throw new \Exception('DB connection lost!');
+
+        $sqlResult = @mysqli_query($this->connection, $query);
+
+        if ($sqlResult === false) {
+            $this->writeError($query);
+            return false;
+        }
+
+        return $sqlResult;
+    }
+
+    public function Disconnect() : void
 	{
-		@mysqli_close($this->connection);
+	    if ($this->connection == null)
+	        return;
+
+	    @mysqli_close($this->connection);
 	}
 
 	public function escape($str)
     {
+        if ($this->connection == null)
+            throw new \Exception('$connection');
+
         return mysqli_real_escape_string($this->connection, $str);
     }
 

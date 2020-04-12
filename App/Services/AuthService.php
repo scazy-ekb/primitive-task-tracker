@@ -4,62 +4,71 @@ namespace App\Services;
 
 class AuthService
 {
-    private $userDataService;
+    private UserDataService $userDataService;
+    private string $auth_cookie_name;
+    private string $secret;
+    private string $domain;
+    private int $currentUserId;
 
-    public function __construct(UserDataService $userDataService)
+    public function __construct(ConfigService $configService, UserDataService $userDataService)
     {
+        $this->auth_cookie_name = $configService->Get('auth_cookie_name');
+        $this->domain = $configService->Get('domain');
+        $this->secret = $configService->Get('secret');
         $this->userDataService = $userDataService;
+        $this->currentUserId = -1;
     }
 
-    public function authentificate()
+    public function isAuthenticated() : bool
     {
-        if (empty($_SESSION['auth'])) {
-            header('Location: /');
-            exit();
-        }
+        return $this->currentUserId > 0;
     }
 
-    public function authentificateBasic()
+    public function currentUser() : int
     {
-        $user = $_SERVER['PHP_AUTH_USER'] ?? "";
-        $pass = $_SERVER['PHP_AUTH_PW'] ?? "";
-
-        if (!$this->validate($user, $pass)) {
-            $_SESSION['auth'] = false;
-            header('WWW-Authenticate: Basic realm="dummy"');
-            header('HTTP/1.0 401 Unauthorized');
-            exit;
-        }
-
-        $_SESSION['auth'] = $user;
+        return $this->currentUserId;
     }
 
-    public function login($login, $pass)
+    public function authentify() : bool
     {
-        if (empty($login) || empty($pass))
+        $cookie = $_COOKIE[$this->auth_cookie_name];
+
+        if (!$cookie)
             return false;
 
-        if (!$this->validate($login, $pass)) {
-            $_SESSION['auth'] = false;
-            return false;
-        }
-
-        $_SESSION['auth'] = $_POST['login'];
+        $encrypted_cookie = openssl_decrypt($cookie, "AES-128-ECB", $this->secret);
+        $value = explode(":", $encrypted_cookie);
+        $this->currentUserId = (int)$value[0];
         return true;
     }
 
-    public function logout()
+    public function login(string $name, string $password) : bool
     {
-        session_destroy();
-        header('Location: /');
-        exit;
+        if (empty($name) || empty($password))
+            return false;
+
+        if (!$this->validateUser($name, $password))
+            return false;
+
+        $value = $this->currentUserId.":".rand();
+        $encrypted_cookie = openssl_encrypt($value, "AES-128-ECB", $this->secret);
+        setcookie($this->auth_cookie_name, $encrypted_cookie, time()+86400, "/", $this->domain, false, true);
+        return true;
     }
 
-    private function validate($login, $pass)
+    public function logout() : void
     {
-        $user = $this->userDataService->getUser($login);
+        setcookie($this->auth_cookie_name, "", 0, "/", $this->domain, false, true);
+    }
 
-        //TODO: user check
-        return $login === 'admin' && $pass === '123';
+    private function validateUser(string $name, string $pass) : int
+    {
+        $user = $this->userDataService->getUserByName($name);
+
+        if (!$this->userDataService->checkPassword($user->id, $pass))
+            return false;
+
+        $this->currentUserId = $user->id;
+        return true;
     }
 }

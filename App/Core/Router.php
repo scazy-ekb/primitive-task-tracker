@@ -2,13 +2,15 @@
 
 namespace App\Core;
 
+use App\Services\AuthService;
+
 class Router
 {
-    const DEFAULT_CONTROLLER = "home";
+    const DEFAULT_CONTROLLER = "page";
     const DEFAULT_ACTION = "index";
     const PATH_REGEX = '%^/(?P<controller>[^/\\\\.]+)/(?P<action>[^/\\\\.\?]+).*$%x';
 
-    private $ioc;
+    private Container $ioc;
 
     public function __construct(Container $ioc)
     {
@@ -18,6 +20,11 @@ class Router
     public function route(string $path)
     {
         $route = $this->getRoute($path);
+
+        //TODO: implement fabric to safely init base Controller class using services, such as AuthService
+
+        $authService = $this->ioc->resolve(AuthService::class);
+        $authService->authentify();
 
         $controllerName = "App\\Controllers\\".$route['controller']."Controller";
 
@@ -29,19 +36,31 @@ class Router
         $this->ioc->register($controllerName);
 
         $controller =  $this->ioc->resolve($controllerName);
+        $controller->setCurrentUserId($authService->currentUser());
 
         try {
             $action = $reflectionClass->getMethod($route['action']);
-            $action->invokeArgs($controller, $_REQUEST);
+
+/*
+            TODO: complete model binding
+
+            $parameters = $action->getParameters();
+            $parameterValues = array();
+
+            foreach ($parameters as $parameter) {
+                $name = $parameter->getName();
+                $type = $parameter->getType();
+
+                $parameterValues[] = ($type)$_REQUEST;
+            }
+*/
+
+            $action->invokeArgs($controller, [$_REQUEST]);
+
         } catch (\ReflectionException $e) {
+            echo $e->getMessage();
             $this->notFound();
         }
-    }
-
-    private function notFound()
-    {
-        http_response_code(404);
-        exit;
     }
 
     private function getRoute($path)
@@ -52,5 +71,11 @@ class Router
             'controller' => array_key_exists('controller', $matches) ? $matches['controller'] : Router::DEFAULT_CONTROLLER,
             'action' => array_key_exists('action', $matches) ? $matches['action'] : Router::DEFAULT_ACTION
         );
+    }
+
+    private function notFound()
+    {
+        http_response_code(404);
+        exit;
     }
 }

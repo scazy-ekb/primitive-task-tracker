@@ -7,7 +7,7 @@ use ReflectionClass;
 
 class Container
 {
-    private $services;
+    private array $services;
 
     public function __construct()
     {
@@ -22,27 +22,11 @@ class Container
         $name = strtolower($name);
 
         if (array_key_exists($name, $this->services))
-            throw new Exception('$instance');
+            throw new Exception("$name already exists");
 
         $this->services[$name] = $instance;
     }
 
-    public function resolveFromArray($name, $array)
-    {
-        $reflectionClass = new ReflectionClass($name);
-
-        if (!$reflectionClass->isInstantiable())
-            throw new Exception("isn't instantiable");
-
-        $constructor = $reflectionClass->getConstructor();
-
-        $num = $constructor->getNumberOfParameters();
-
-        if ($num == 0)
-            throw new Exception("constructor doesn't have parameters");
-
-        return $reflectionClass->newInstanceArgs($array);
-    }
 
     public function resolve($name)
     {
@@ -78,7 +62,7 @@ class Container
         return $reflectionClass->newInstanceArgs($dependencies);
     }
 
-    public function resolveDependencies($parameters)
+    private function resolveDependencies($parameters)
     {
         $dependencies = [];
 

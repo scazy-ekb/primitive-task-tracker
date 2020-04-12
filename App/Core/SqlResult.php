@@ -4,9 +4,9 @@ namespace App\Core;
 
 class SqlResult
 {
-    var $result;
+    var ?\mysqli_result $result;
 
-    function __construct($result)
+    function __construct(\mysqli_result $result)
     {
         $this->result = $result;
     }
@@ -34,7 +34,7 @@ class SqlResult
         return true;
     }
 
-    function num_rows()
+    function RowsCount()
     {
         return @mysqli_num_rows($this->result);
     }

@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS `users` (
     `id` int(11) NOT NULL auto_increment,
-    `login` varchar(250)  NOT NULL,
+    `login` varchar(250) NOT NULL UNIQUE,
     `email` varchar(250)  NOT NULL,
     `password` varchar(32)  NOT NULL,
     PRIMARY KEY  (`id`)

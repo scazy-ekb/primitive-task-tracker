@@ -4,19 +4,18 @@ namespace App\Services;
 
 require_once 'App/Models/Task.php';
 
-use App\Core\SqlConnection;
 use App\Models\Task;
 
 class TaskDataService
 {
-    private $connection;
+    private DataService $dataService;
 
-    public function __construct(SqlConnection $connection)
+    public function __construct(DataService $dataService)
     {
-        $this->connection = $connection;
+        $this->dataService = $dataService;
     }
 
-    public function getTasks($page, $count, $col, $order) : array
+    public function getTasks(int $page, int $count, string $col, string $order) : array
     {
         $offset = $page*$count;
 
@@ -27,13 +26,14 @@ class TaskDataService
         $query = "SELECT * FROM `tasks` ORDER BY `$col` $order LIMIT $count OFFSET $offset";
 
         $result = array();
-
-        $sqlResult = $this->connection->execute($query);
+        $connection = $this->dataService->getConnection();
+        $sqlResult = $connection->query($query);
 
         while ($row = $sqlResult->fetchArray()) {
             $result[] = Task::fromArray($row);
         }
 
+        $sqlResult->free_result();
         return $result;
     }
 }
