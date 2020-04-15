@@ -1,6 +1,6 @@
 <script src="/js/TaskService.js"></script>
 <script src="/js/main.js"></script>
-<div class="container <?=$model['mode']?>-mode">
+<div id="task-board" class="container" data-board-mode=<?=$model['mode']?>>
     <div class="card card-block">
         <div class="card-body">
             <h1 class="float-left">Tasks</h1>

@@ -8,10 +8,21 @@
         let total = 0;
         let totalPages = 0;
 
+        let isAdminMode = $('#task-board').data('board-mode') == 'admin';
+
         let $table = $('#tasks-table');
         let $pager = $('#pager');
 
-        let mapTask = (task) => `<tr id='task_${task.id}'><td>${task.username}</td><td>${task.email}</td><td>${htmlDecode(task.description)}</td><td><input type="checkbox" ${task.status ? "checked" : ""}></td></tr>`;
+        let mapTask = (task) => `<tr id='task_${task.id}' class="task">`
+            + `<td>${task.username}</td>`
+            + `<td>${task.email}</td>`
+            + `<td class="${isAdminMode ? "editable" : ""}"><span class="description">${htmlDecode(task.description)}</span></td>`
+            + `<td><div class="custom-control custom-switch task-status">`
+                + `<input id="status_${task.id}" type="checkbox" class="editable custom-control-input" ${task.status ? "checked" : ""} ${!isAdminMode ? "disabled" : ""}>`
+                + `<label class="custom-control-label" for="status_${task.id}"></label>`
+            + `</div></td>`
+            + `</tr>`;
+
         let getId = (el) => parseInt(el.attr('id').split('_')[1]);
         let htmlDecode = (input) => {
             let e = document.createElement('textarea');
@@ -21,6 +32,33 @@
             return result;
         };
 
+        let editDescription = async ($el, description) => {
+            return await new Promise((resolve, reject) => {
+                var $input = $(`<textarea class="description-editor" rows="10" required>${description}</textarea>`);
+
+                let $save = $('<button type="submit" class="btn btn-primary btn-sm float-right mt-2">Save</button>');
+                let $cancel = $('<button type="button" class="btn btn-secondary btn-sm float-right mt-2 ml-2">Cancel</button>');
+
+                $el.after($input);
+                $input.after($cancel);
+                $cancel.after($save);
+
+                let done = (value) => {
+                    $input.remove();
+                    $save.remove();
+                    $cancel.remove();
+
+                    if (value)
+                        resolve(value);
+                    else
+                        resolve(false);
+                };
+
+                $save.click(() => done($input.val()));
+                $cancel.click(() => done(false));
+            });
+        };
+
         let refreshPage = async () => {
 
             let tasksResult = await taskService.getTasks(page, pageSize, order, column);
@@ -28,6 +66,35 @@
             total = tasksResult.totalRowsCount;
             totalPages = total / pageSize;
             $table.find('tbody').empty().append(tasks.map(task => mapTask(task)));
+
+            $table.find('tbody td.editable .description').click(async (e) => {
+                let $el = $(e.target);
+                let description = $el.text();
+                $el.hide();
+                let newDescription = await editDescription($el, description);
+
+                if (newDescription !== false && newDescription !== description) {
+                    let $task = $el.closest('.task');
+                    let taskId = getId($task);
+                    let $checkbox = $task.find('.task-status input');
+                    let status = $checkbox.is(':checked');
+                    if (await taskService.editTask(taskId, newDescription, status)) {
+                        $el.text(newDescription);
+                    }
+                }
+
+                $el.show();
+            });
+
+            $table.find('tbody .task-status').mousedown(async (e) => {
+                let $checkbox = $(e.target).closest('.task-status').find('input');
+                let status = !$checkbox.is(':checked');
+                let $task = $checkbox.closest('.task');
+                let taskId = getId($task);
+                if (!await taskService.editTask(taskId, $task.find('.description').text(), status)) {
+                    e.preventDefault();
+                }
+            });
 
             $pager.find('li:not(.prev,.next)').remove();
 
@@ -52,6 +119,7 @@
             siblings.removeClass("active");
             column = $th.data('col-name');
             order = !$th.hasClass("order-asc");
+            page = 0;
             $th.addClass("active").toggleClass("order-asc order-desc");
             await refreshPage();
         });

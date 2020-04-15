@@ -11,7 +11,7 @@ class EditTaskRequest implements IBindable
     public string $description;
     public bool $status;
 
-    private array $validation_errors;
+    private array $validation_errors = [];
 
     public function bind(array $array) : bool
     {
@@ -26,7 +26,7 @@ class EditTaskRequest implements IBindable
             $this->validation_errors['description'] = "Description is invalid";
 
         if (Validator::IsBool($array['status']))
-            $this->status = boolval($array['status']);
+            $this->status = filter_var($array['status'], FILTER_VALIDATE_BOOLEAN);
         else
             $this->validation_errors['status'] = "Status is invalid";
 

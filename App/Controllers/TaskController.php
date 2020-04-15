@@ -51,6 +51,6 @@ class TaskController extends Controller
         if (!empty($model->errors()))
             $this->json(['errors' => $model->errors()]);
 
-        $this->taskDataService->editTask($model->id, $model->description, $model->status);
+        $this->taskDataService->editTask($model->id, htmlspecialchars($model->description), $model->status);
     }
 }

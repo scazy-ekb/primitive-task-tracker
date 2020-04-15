@@ -32,7 +32,7 @@ class CreateTaskRequest implements IBindable
             $this->validation_errors['description'] = "Description is invalid";
 
         if (Validator::isBool($array['status']))
-            $this->status = $array['status'];
+            $this->status = filter_var($array['status'], FILTER_VALIDATE_BOOLEAN);
         else
             $this->validation_errors['status'] = "Status is invalid";
 

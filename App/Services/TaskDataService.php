@@ -59,7 +59,8 @@ class TaskDataService
     {
         $connection = $this->dataService->getConnection();
         $description_esc = $connection->escape($description);
-        $query = "INSERT INTO `tasks` (`username`, `email`, `description`, `status`) VALUES ('$username', '$email', '$description_esc', $status);";
+        $status_string = $status ? 1 : 0;
+        $query = "INSERT INTO `tasks` (`username`, `email`, `description`, `status`) VALUES ('$username', '$email', '$description_esc', $status_string);";
         return $connection->insert($query);
     }
 
@@ -67,7 +68,8 @@ class TaskDataService
     {
         $connection = $this->dataService->getConnection();
         $description_esc = $connection->escape($description);
-        $query = "UPDATE `tasks` SET `description`='$description_esc', `status`=$status WHERE `id`=$id;";
+        $status_string = $status ? 1 : 0;
+        $query = "UPDATE `tasks` SET `description`='$description_esc', `status`=$status_string WHERE `id`=$id;";
         $connection->execute($query);
     }
 }
