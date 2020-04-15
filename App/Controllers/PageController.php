@@ -21,9 +21,12 @@ class PageController extends Controller
     {
         $user = $this->userDataService->getUser($this->userId);
 
+        $mode = $user !== null && $user->login === 'admin' ? 'admin' : 'user';
+
         $this->view('Page/Index', [
             'isAuthenticated' => $user !== null,
-            'username' => $user !== null ? $user->login : ""
+            'username' => $user !== null ? $user->login : "",
+            'mode' => $mode
         ]);
     }
 

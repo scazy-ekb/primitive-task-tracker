@@ -31,8 +31,9 @@ class PageRequest implements IBindable
         else
             $this->validation_errors['column'] = 'Column is invalid.';
 
-        if (Validator::isBool($array['order']))
-            $this->order = boolval($array['order']);
+        if (Validator::isBool($array['order'])) {
+            $this->order = filter_var(    $array['order'], FILTER_VALIDATE_BOOLEAN);
+        }
         else
             $this->validation_errors['order'] = 'Order is invalid.';
     }

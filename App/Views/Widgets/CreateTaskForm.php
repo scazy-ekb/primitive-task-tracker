@@ -1,28 +1,3 @@
-<script>
-    ((function(taskService) {
-        $(document).ready(() => {
-            $('#modal form').submit(async (e) => {
-               e.preventDefault();
-               let formData = $('#modal form').serializeArray();
-               let data = {};
-               formData.forEach(obj => {
-                   data[obj.name] = obj.value;
-               });
-
-               try {
-                   await taskService.createTask(data['username'], data['email'], data['description'], data['status'] === "on");
-                   $('#modal form')[0].reset();
-                   $("#modal .close").click();
-               }
-               catch (errors) {
-                   $('#modal form small.form-text').hide();
-                   for(var name in  errors)
-                       $(`#modal form #${name} + small.form-text`).text(errors[name]).show();
-               }
-            });
-        });
-    })(window.TaskService));
-</script>
 <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">

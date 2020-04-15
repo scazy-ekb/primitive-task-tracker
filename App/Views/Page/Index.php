@@ -1,5 +1,6 @@
 <script src="/js/TaskService.js"></script>
-<div class="container">
+<script src="/js/main.js"></script>
+<div class="container <?=$model['mode']?>-mode">
     <div class="card card-block">
         <div class="card-body">
             <h1 class="float-left">Tasks</h1>

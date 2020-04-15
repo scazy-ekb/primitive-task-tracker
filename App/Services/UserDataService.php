@@ -34,6 +34,9 @@ class UserDataService
 
     public function getUser(int $id) : ?User
     {
+        if ($id <= 0)
+            return null;
+
         $connection = $this->dataService->getConnection();
 
         $query = "SELECT * FROM `users` WHERE `id`='$id'";

@@ -36,6 +36,6 @@ class Validator
 
     static function isBool($str): bool
     {
-        return !is_bool($str);
+        return in_array(strtolower($str), array("true", "false", "1", "0", "yes", "no"), true);
     }
 }

@@ -59,9 +59,6 @@ class TaskDataService
     {
         $connection = $this->dataService->getConnection();
         $description_esc = $connection->escape($description);
-
-        var_dump($description_esc);
-        exit();
         $query = "INSERT INTO `tasks` (`username`, `email`, `description`, `status`) VALUES ('$username', '$email', '$description_esc', $status);";
         return $connection->insert($query);
     }
