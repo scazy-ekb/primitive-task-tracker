@@ -16,7 +16,7 @@
         let mapTask = (task) => `<tr id='task_${task.id}' class="task">`
             + `<td>${task.username}</td>`
             + `<td>${task.email}</td>`
-            + `<td class="${isAdminMode ? "editable" : ""}"><span class="description">${htmlDecode(task.description)}</span></td>`
+            + `<td><span class="description ${isAdminMode ? "editable" : ""}">${htmlDecode(task.description)}</span></td>`
             + `<td><div class="custom-control custom-switch task-status">`
                 + `<input id="status_${task.id}" type="checkbox" class="editable custom-control-input" ${task.status ? "checked" : ""} ${!isAdminMode ? "disabled" : ""}>`
                 + `<label class="custom-control-label" for="status_${task.id}"></label>`
@@ -24,6 +24,7 @@
             + `</tr>`;
 
         let getId = (el) => parseInt(el.attr('id').split('_')[1]);
+
         let htmlDecode = (input) => {
             let e = document.createElement('textarea');
             e.innerHTML = input;
@@ -34,19 +35,21 @@
 
         let editDescription = async ($el, description) => {
             return await new Promise((resolve, reject) => {
-                var $input = $(`<textarea class="description-editor" rows="10" required>${description}</textarea>`);
-
-                let $save = $('<button type="submit" class="btn btn-primary btn-sm float-right mt-2">Save</button>');
-                let $cancel = $('<button type="button" class="btn btn-secondary btn-sm float-right mt-2 ml-2">Cancel</button>');
+                var $input = $(`<textarea class="w-100 d-block" rows="10" required>${description}</textarea>`);
+                let $save = $('<button class="btn btn-primary btn-sm float-right mt-2 d-block">Save</button>');
+                let $cancel = $('<button class="btn btn-secondary btn-sm float-right mt-2 ml-2 d-block">Cancel</button>');
+                let $err =  $('<small class="d-block text-danger"></small>').hide();
 
                 $el.after($input);
                 $input.after($cancel);
                 $cancel.after($save);
+                $save.after($err);
 
                 let done = (value) => {
                     $input.remove();
                     $save.remove();
                     $cancel.remove();
+                    $err.remove();
 
                     if (value)
                         resolve(value);
@@ -54,7 +57,14 @@
                         resolve(false);
                 };
 
-                $save.click(() => done($input.val()));
+                $save.click(() => {
+                    if ($input.val() === '') {
+                        $err.text('Description can\'t be empty').show();
+                        return;
+                    }
+
+                    done($input.val());
+                });
                 $cancel.click(() => done(false));
             });
         };
@@ -67,7 +77,7 @@
             totalPages = total / pageSize;
             $table.find('tbody').empty().append(tasks.map(task => mapTask(task)));
 
-            $table.find('tbody td.editable .description').click(async (e) => {
+            $table.find('tbody td .description.editable').click(async (e) => {
                 let $el = $(e.target);
                 let description = $el.text();
                 $el.hide();
@@ -108,6 +118,7 @@
             $pager.find('li.next').toggleClass('disabled', page >= (totalPages - 1));
 
             $pager.find('li:not(.prev,.next)').click(async (e) => {
+                e.preventDefault();
                 page = getId($(e.target).closest('li'));
                 await refreshPage();
             });
@@ -125,6 +136,7 @@
         });
 
         $pager.find('li.prev').click(async (e) => {
+            e.preventDefault();
             let $prev = $(e.target);
             if (!$prev.hasClass('disabled') && page > 0) {
                 page--;
@@ -133,6 +145,7 @@
         });
 
         $pager.find('li.next').click(async (e) => {
+            e.preventDefault();
             let $el = $(e.target);
             if (!$el.hasClass('disabled') && page < (totalPages - 1)) {
                 page++;
