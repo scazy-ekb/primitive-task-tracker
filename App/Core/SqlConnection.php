@@ -35,7 +35,7 @@ class SqlConnection
 
 	function isConnected()
     {
-        return $this->connection!= null && $this->connection->ping();
+        return $this->connection !== null && $this->connection->ping();
     }
 
 	function query($query) : SqlResult
@@ -47,7 +47,7 @@ class SqlConnection
 
 		if ($sqlResult === false) {
 			$this->writeError($query);
-			return false;
+			return null;
 		}
 
 		return new SqlResult($sqlResult);
@@ -68,7 +68,22 @@ class SqlConnection
         return $sqlResult;
     }
 
-    public function Disconnect() : void
+    function insert($query) : int
+    {
+        if (!$this->isConnected())
+            throw new \Exception('DB connection lost!');
+
+        $sqlResult = @mysqli_query($this->connection, $query);
+
+        if ($sqlResult === false) {
+            $this->writeError($query);
+            return false;
+        }
+
+        return @mysqli_insert_id($this->connection);
+    }
+
+    public function disconnect() : void
 	{
 	    if ($this->connection == null)
 	        return;

@@ -3,6 +3,7 @@
 namespace App\Core;
 
 use App\Services\AuthService;
+use ReflectionClass;
 
 class Router
 {
@@ -41,21 +42,29 @@ class Router
         try {
             $action = $reflectionClass->getMethod($route['action']);
 
-/*
-            TODO: complete model binding
+
+            //TODO: complete model binding
 
             $parameters = $action->getParameters();
-            $parameterValues = array();
 
-            foreach ($parameters as $parameter) {
-                $name = $parameter->getName();
+            $args = [$_REQUEST];
+
+            if (count($parameters) === 1) {
+                $parameter = $parameters[0];
                 $type = $parameter->getType();
 
-                $parameterValues[] = ($type)$_REQUEST;
-            }
-*/
+                if (class_exists("$type")) {
+                    $class = new ReflectionClass("$type");
 
-            $action->invokeArgs($controller, [$_REQUEST]);
+                    if ($class->implementsInterface(IBindable::class)) {
+                        $instance = $class->newInstance();
+                        $instance->bind($_REQUEST);
+                        $args = [$instance];
+                    }
+                }
+            }
+
+            $action->invokeArgs($controller, $args);
 
         } catch (\ReflectionException $e) {
             echo $e->getMessage();

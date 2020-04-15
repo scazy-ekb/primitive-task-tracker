@@ -27,9 +27,18 @@ class Controller
     {
         header('Content-Type: application/json', true);
         echo json_encode($data);
+        exit();
     }
 
-    protected function isAuthentificated()
+    protected function jsonError($data = null)
+    {
+        header('Content-Type: application/json', true);
+        http_response_code(400);
+        echo json_encode($data);
+        exit();
+    }
+
+    protected function isAuthenticated()
     {
         return $this->userId !== null && $this->userId > -1;
     }

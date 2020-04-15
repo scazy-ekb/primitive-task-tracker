@@ -1,21 +1,23 @@
 <?php
 
-namespace App\Models;
+namespace App\DataModels;
 
 class Task
 {
     public int $id;
-    public int $userId;
+    public string $username;
+    public string $email;
     public string $description;
-    public bool $completed;
+    public bool $status;
 
     public static function fromArray(array $array) : Task
     {
         $task = new Task();
         $task->id = $array['id'];
-        $task->userId = $array['userId'];
+        $task->username = $array['username'];
+        $task->email = $array['email'];
         $task->description = $array['description'];
-        $task->completed = $array['completed'];
+        $task->status = $array['status'];
         return $task;
     }
 }

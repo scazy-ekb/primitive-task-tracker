@@ -1,31 +1,15 @@
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.20/datatables.min.css"/>
-<style>
-    #table_id { width: 100%; }
-</style>
-<script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.20/datatables.min.js"></script>
-<script>
-    $(document).ready( function () {
-        /*
-        $('#table_id').DataTable({
-            "processing": true,
-            "serverSide": true,
-            "ajax": "/tasks/index"
-        });
-        */
-    } );
-</script>
+<script src="/js/TaskService.js"></script>
 <div class="container">
-    <h1>Tasks</h1>
-    <table id="table_id">
-        <thead>
-        <tr>
-            <th>id</th>
-            <th>userId</th>
-            <th>description</th>
-            <th>completed</th>
-        </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
+    <div class="card card-block">
+        <div class="card-body">
+            <h1 class="float-left">Tasks</h1>
+            <button id="create-task" type="button" class="btn btn-primary float-right" data-toggle="modal" data-target="#modal">Create</button>
+        </div>
+    </div>
+    <div class="card card-block">
+        <div class="card-body">
+            <?php include "App/Views/Widgets/TaskTable.php" ?>
+        </div>
+    </div>
+    <?php include "App/Views/Widgets/CreateTaskForm.php" ?>
 </div>

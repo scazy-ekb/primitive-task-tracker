@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-require_once 'App/Models/User.php';
+require_once 'App/DataModels/User.php';
 
-use App\Models\User;
+use App\DataModels\User;
 
 class UserDataService
 {

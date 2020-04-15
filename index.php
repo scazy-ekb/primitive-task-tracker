@@ -4,6 +4,12 @@ require_once 'App/Core/Container.php';
 require_once 'App/Core/Router.php';
 require_once 'App/Core/Controller.php';
 require_once 'App/Core/SqlConnection.php';
+require_once 'App/Core/IBindable.php';
+require_once 'App/Core/Validator.php';
+
+require_once 'App/ViewModels/CreateTaskRequest.php';
+require_once 'App/ViewModels/EditTaskRequest.php';
+require_once 'App/ViewModels/PageRequest.php';
 
 require_once 'App/Services/ConfigService.php';
 require_once 'App/Services/DataService.php';
@@ -13,7 +19,7 @@ require_once 'App/Services/TaskDataService.php';
 
 require_once 'App/Controllers/AccountController.php';
 require_once 'App/Controllers/PageController.php';
-require_once 'App/Controllers/TasksController.php';
+require_once 'App/Controllers/TaskController.php';
 
 try {
 
@@ -34,6 +40,6 @@ try {
     http_response_code(500);
     echo "<h3>Internal Server Error</h3>";
     echo "<p>Message: ".$e->getMessage()."</p>";
-    //echo "<p>Place: ".$e->getLine()."</p>";
+    echo "<p>Place: ".$e->getLine()."</p>";
     exit;
 }

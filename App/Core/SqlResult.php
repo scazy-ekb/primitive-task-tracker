@@ -38,14 +38,4 @@ class SqlResult
     {
         return @mysqli_num_rows($this->result);
     }
-
-    function num_fields()
-    {
-        return @mysqli_num_fields($this->result);
-    }
-
-    function data_seek($i)
-    {
-        return @mysqli_data_seek($this->result, $i);
-    }
 }

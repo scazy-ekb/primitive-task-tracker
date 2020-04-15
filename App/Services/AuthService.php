@@ -65,6 +65,9 @@ class AuthService
     {
         $user = $this->userDataService->getUserByName($name);
 
+        if ($user === null)
+            return false;
+
         if (!$this->userDataService->checkPassword($user->id, $pass))
             return false;
 
